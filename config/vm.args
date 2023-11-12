@@ -1,0 +1,6 @@
+-sname copy_node_labels
+
+-setcookie copy_node_labels_cookie
+
++K true
++A30
