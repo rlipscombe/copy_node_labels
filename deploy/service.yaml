@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: copy-node-labels
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 443
+      targetPort: 443
+  selector:
+    app: copy-node-labels
