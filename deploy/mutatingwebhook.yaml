@@ -9,10 +9,10 @@ metadata:
 webhooks:
   - name: copy-node-labels.webhooks.differentpla.net
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE", "CONNECT"]
         apiGroups: [""]
         apiVersions: ["v1"]
-        resources: ["pods"]
+        resources: ["pods", "pods/*"]
         scope: "*"
     namespaceSelector:
       matchExpressions:
