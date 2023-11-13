@@ -27,7 +27,8 @@ handle_request(
         <<"request">> := #{
             <<"uid">> := Uid,
             <<"object">> := #{
-                <<"spec">> := #{<<"nodeName">> := NodeName}
+                <<"spec">> := #{<<"nodeName">> := NodeName},
+                <<"metadata">> := #{<<"annotations">> := Annotations}
             }
         }
     },
@@ -35,6 +36,7 @@ handle_request(
     Opts
 ) ->
     ?LOG_INFO("Have nodeName: ~s", [NodeName]),
+    ?LOG_INFO("Have annotations: ~p", [Annotations]),
 
     % Get our annotation from the pod, so we know what labels/annotations to copy from the node.
 
@@ -51,11 +53,6 @@ handle_request(
     % You can't patch labels during pod/status updates, which means we can only add annotations.
     % Because the things that need copying are listed in the annotations, we can assume that the annotations object is present.
     Patch = [
-        #{
-            <<"op">> => <<"add">>,
-            <<"path">> => <<"/metadata/annotations">>,
-            <<"value">> => #{}
-        },
         #{
             <<"op">> => <<"add">>,
             <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1region">>,
