@@ -25,7 +25,10 @@ init(Req1, Opts) ->
 handle_request(
     _Request = #{
         <<"request">> := #{
-            <<"uid">> := Uid, <<"object">> := #{<<"spec">> := #{<<"nodeName">> := NodeName}}
+            <<"uid">> := Uid,
+            <<"object">> := #{
+                <<"spec">> := #{<<"nodeName">> := NodeName}
+            }
         }
     },
     Req,
@@ -33,9 +36,17 @@ handle_request(
 ) ->
     ?LOG_INFO("Have nodeName: ~s", [NodeName]),
 
-    % TODO: Get our annotation from the pod, so we know what labels/annotations to copy from the node.
+    % Get our annotation from the pod, so we know what labels/annotations to copy from the node.
 
-    _ = get_node(NodeName),
+    % TODO: Or just get _an_ annotation, so we know to apply these particular labels.
+    % e.g. differentpla.net/copy-node-labels: topology
+
+    Node = get_node(NodeName),
+    #{<<"metadata">> := #{<<"labels">> := Labels}} = Node,
+    #{
+        <<"topology.kubernetes.io/region">> := Region,
+        <<"topology.kubernetes.io/zone">> := Zone
+    } = Labels,
 
     % You can't patch labels during pod/status updates, which means we can only add annotations.
     % Because the things that need copying are listed in the annotations, we can assume that the annotations object is present.
@@ -48,12 +59,12 @@ handle_request(
         #{
             <<"op">> => <<"add">>,
             <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1region">>,
-            <<"value">> => <<"eu-west-1">>
+            <<"value">> => Region
         },
         #{
             <<"op">> => <<"add">>,
             <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1zone">>,
-            <<"value">> => <<"eu-west-1a">>
+            <<"value">> => Zone
         }
     ],
     ResBody = jsx:encode(#{
