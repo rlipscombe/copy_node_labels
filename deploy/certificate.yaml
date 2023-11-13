@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: copy-node-labels
+  namespace: default
+spec:
+  secretName: copy-node-labels-tls
+  commonName: "copy-node-labels.default.svc"
+  dnsNames:
+    - "copy-node-labels"
+    - "copy-node-labels.default"
+    - "copy-node-labels.default.svc"
+    - "copy-node-labels.default.svc.local"
+  # https://github.com/aws/amazon-eks-pod-identity-webhook/blob/master/deploy/deployment-base.yaml has isCA: true (i.e. self-signed)
+  isCA: true
+  issuerRef:
+    name: copy-node-labels
+    kind: Issuer
+  privateKey:
+    algorithm: RSA
