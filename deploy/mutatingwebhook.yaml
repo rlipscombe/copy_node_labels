@@ -29,7 +29,7 @@ webhooks:
       service:
         namespace: default
         name: copy-node-labels
-    admissionReviewVersions: ["v1beta1"]
+    admissionReviewVersions: ["v1"]
     sideEffects: None
     # Setting this to 'Fail' is a good way to prove that it's registered properly (assuming you've not implemented it yet, obvs).
     # On the other hand, you won't be able to create the pod to _fix_ those problems / to implement it, because, well...
