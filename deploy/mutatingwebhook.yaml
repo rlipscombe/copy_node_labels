@@ -14,6 +14,14 @@ webhooks:
         apiVersions: ["v1"]
         resources: ["pods"]
         scope: "*"
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: NotIn
+          values:
+            - "kube-system"
+            - "cert-manager"
+            - "longhorn-system"
     clientConfig:
       # Must be https://, which is a PITA
       # url: https://roger-nuc0:8000
