@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copy-node-labels
+spec:
+  selector:
+    matchLabels:
+      app: copy-node-labels
+  template:
+    metadata:
+      labels:
+        app: copy-node-labels
+    spec:
+      containers:
+      - name: tls-termination
+        image: alpine/socat
+        command:
+          - "socat"
+        args:
+          - "openssl-listen:443,reuseaddr,cert=/certs/tls.crt,key=/certs/tls.key,verify=0,fork"
+          - "tcp:127.0.0.1:8000"
+        volumeMounts:
+          - mountPath: /certs
+            name: certs
+        ports:
+        - containerPort: 443
+      - name: copy-node-labels
+        image: python:3
+        command:
+          - "python"
+        args: ["-m", "http.server", "8000"]
+      volumes:
+        - name: certs
+          secret:
+            secretName: copy-node-labels-tls
