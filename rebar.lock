@@ -11,6 +11,10 @@
  {<<"ranch">>,{pkg,<<"ranch">>,<<"2.1.0">>},0},
  {<<"ssl_verify_fun">>,{pkg,<<"ssl_verify_fun">>,<<"1.1.6">>},1},
  {<<"unicode_util_compat">>,{pkg,<<"unicode_util_compat">>,<<"0.7.0">>},1},
+ {<<"vsn_transform">>,
+  {git,"https://github.com/rlipscombe/vsn_transform.git",
+       {ref,"97728dcad53474754e5180cb7db360e5db2cafd5"}},
+  0},
  {<<"yamerl">>,{pkg,<<"yamerl">>,<<"0.10.0">>},0}]}.
 [
 {pkg_hash,[
