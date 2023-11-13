@@ -59,12 +59,19 @@ handle_request(
     % Could support multiple configurations by annotation label.
     % That could either point to a configuration file section, or to a completely different instance of _this_ "thing".
 
+    % You can't patch labels during pod/status updates, which means we can only add annotations.
+
     % You can't add to non-existent objects, so if there's no annotation object, we need to create it.
     % If there _is_ one, we need to be careful not to wipe it.
     Patch = [
         #{
             <<"op">> => <<"add">>,
-            <<"path">> => <<"/metadata/labels/topology.kubernetes.io~1zone">>,
+            <<"path">> => <<"/metadata/annotations">>,
+            <<"value">> => #{}
+        },
+        #{
+            <<"op">> => <<"add">>,
+            <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1zone">>,
             <<"value">> => <<"eu-west-1a">>
         }
     ],

@@ -17,5 +17,6 @@ build-image: rebar.lock
 
 push-image:
 	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME)
+	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME):latest
 	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME):$(BRANCH_NAME)

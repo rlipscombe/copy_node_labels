@@ -14,7 +14,7 @@ spec:
       serviceAccountName: copy-node-labels
       containers:
       - name: copy-node-labels
-        image: copy-node-labels
+        image: docker.k3s.differentpla.net/copy-node-labels
         ports:
           - containerPort: 8443
         volumeMounts:
