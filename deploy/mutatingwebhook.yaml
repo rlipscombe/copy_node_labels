@@ -13,8 +13,7 @@ webhooks:
         apiGroups: [""]
         apiVersions: ["v1"]
         resources: ["pods"]
-        # Only applies to pods in the same namespace
-        scope: "Namespaced"
+        scope: "*"
     clientConfig:
       # Must be https://, which is a PITA
       # url: https://roger-nuc0:8000
