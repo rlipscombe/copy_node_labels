@@ -1,15 +1,17 @@
-{application, copy_node_labels,
- [{description, "An OTP application"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {mod, {copy_node_labels_app, []}},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
+{application, copy_node_labels, [
+    {description, "An OTP application"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {copy_node_labels_app, []}},
+    {applications, [
+        kernel,
+        stdlib,
+        cowboy,
+        jsx
+    ]},
+    {env, []},
+    {modules, []},
 
-  {licenses, ["Apache-2.0"]},
-  {links, []}
- ]}.
+    {licenses, ["Apache-2.0"]},
+    {links, []}
+]}.
