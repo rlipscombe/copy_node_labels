@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: copy-node-labels
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: copy-node-labels
+    namespace: default
+    apiGroup: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: copy-node-labels

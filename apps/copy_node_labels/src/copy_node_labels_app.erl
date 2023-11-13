@@ -14,7 +14,7 @@ start(_StartType, _StartArgs) ->
     {ok, _} = cowboy:start_tls(
         https,
         [
-            {port, 443},
+            {port, 8443},
             {cacertfile, "/certs/ca.crt"},
             {certfile, "/certs/tls.crt"},
             {keyfile, "/certs/tls.key"}

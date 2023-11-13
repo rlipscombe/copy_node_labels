@@ -11,13 +11,16 @@ spec:
       labels:
         app: copy-node-labels
     spec:
+      serviceAccountName: copy-node-labels
       containers:
       - name: copy-node-labels
         image: docker.k3s.differentpla.net/copy-node-labels
+        ports:
+          - containerPort: 8443
         volumeMounts:
           - mountPath: /certs
             name: certs
       volumes:
         - name: certs
           secret:
-            secretName: copy-node-labels-tls
+            secretName: copy-node-labels

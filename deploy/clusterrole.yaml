@@ -1,0 +1,11 @@
+# Needs to be a ClusterRole because nodes are cluster-scoped, not namespace-scoped.
+# We also want to update pods in all namespaces, so that needs to be a ClusterRole as well (TODO).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: copy-node-labels
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get"]

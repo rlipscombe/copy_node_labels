@@ -10,9 +10,15 @@ init(Req1, Opts) ->
     Request = jsx:decode(ReqJson),
     ?LOG_DEBUG(#{request => Request}),
 
+    % Bail early if it's not an AdmissionReview
     #{<<"apiVersion">> := <<"admission.k8s.io/v1">>, <<"kind">> := <<"AdmissionReview">>} = Request,
-    #{<<"request">> := #{<<"name">> := Name, <<"namespace">> := Namespace}} = Request,
-    ?LOG_INFO(#{name => Name, namespace => Namespace}),
+
+    #{
+        <<"request">> := #{
+            <<"operation">> := Operation, <<"name">> := Name, <<"namespace">> := Namespace
+        }
+    } = Request,
+    ?LOG_INFO("~s ~s (in ~s)", [Operation, Name, Namespace]),
 
     handle_request(Request, Req2, Opts).
 
@@ -27,16 +33,51 @@ handle_request(
 ) ->
     ?LOG_INFO("Have nodeName: ~s", [NodeName]),
 
-    % TODO: Go and get the node's labels/annotations.
+    Host = os:getenv("KUBERNETES_SERVICE_HOST"),
+    Port = os:getenv("KUBERNETES_SERVICE_PORT"),
+    Url = io_lib:format("https://~s:~s/api/v1/nodes/~s", [Host, Port, NodeName]),
 
-    % TODO: If I reject it, what then? This would prove that we've still got time to add the labels/annotations...?
+    {ok, Token} = file:read_file("/var/run/secrets/kubernetes.io/serviceaccount/token"),
+    Headers = [
+        {<<"accept">>, <<"application/json">>},
+        {<<"authorization">>, <<"Bearer ", Token/binary>>}
+    ],
+    CACertFile = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
+    {ok, 200, _, NodeJson} = hackney:get(
+        Url,
+        Headers,
+        <<>>,
+        [
+            with_body,
+            {ssl_options, [{verify, verify_peer}, {cacertfile, CACertFile}]}
+        ]
+    ),
 
+    % TODO: How do I know what to copy to the pod? Do I need to parse the labels/annotations on the _pod_, to know whether to populate them from the node?
+    % Or do I put something in _my_ config to control it? That'd be better than abusing labels/annotations.
+    % Maybe: an annotation on the pod to _enable_ copying. Then copy the configured stuff.
+    % Could support multiple configurations by annotation label.
+    % That could either point to a configuration file section, or to a completely different instance of _this_ "thing".
+    Patch = [
+        #{
+            <<"op">> => <<"add">>,
+            <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1/region">>,
+            <<"value">> => <<"eu-west-1">>
+        },
+        #{
+            <<"op">> => <<"add">>,
+            <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1/zone">>,
+            <<"value">> => <<"eu-west-1a">>
+        }
+    ],
     ResBody = jsx:encode(#{
         <<"apiVersion">> => <<"admission.k8s.io/v1">>,
         <<"kind">> => <<"AdmissionReview">>,
         <<"response">> => #{
             <<"uid">> => Uid,
-            <<"allowed">> => false
+            <<"allowed">> => true,
+            <<"patchType">> => <<"JSONPatch">>,
+            <<"patch">> => base64:encode(jsx:encode(Patch))
         }
     }),
 

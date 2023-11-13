@@ -4,7 +4,7 @@ metadata:
   name: copy-node-labels
   namespace: default
 spec:
-  secretName: copy-node-labels-tls
+  secretName: copy-node-labels
   commonName: "copy-node-labels.default.svc"
   dnsNames:
     - "copy-node-labels"
