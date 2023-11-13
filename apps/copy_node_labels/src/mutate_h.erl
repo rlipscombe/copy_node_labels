@@ -82,14 +82,15 @@ handle_request(_Request = #{<<"request">> := #{<<"uid">> := Uid}}, Req, Opts) ->
     Req2 = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, ResBody, Req),
     {ok, Req2, Opts}.
 
-get_node(NodeName) ->
-    k8s_api_call(<<"/api/v1/nodes/", NodeName>>).
+get_node(NodeName) when is_binary(NodeName) ->
+    k8s_api_call(<<"/api/v1/nodes/", NodeName/binary>>).
 
 k8s_api_call(Path) ->
     Host = os:getenv("KUBERNETES_SERVICE_HOST"),
     Port = os:getenv("KUBERNETES_SERVICE_PORT"),
     Server = io_lib:format("https://~s:~s", [Host, Port]),
-    Url = hackney_url:make_url(Server, Path),
+    Qs = [],
+    Url = hackney_url:make_url(Server, Path, Qs),
 
     {ok, Token} = file:read_file("/var/run/secrets/kubernetes.io/serviceaccount/token"),
     Headers = [
@@ -103,7 +104,10 @@ k8s_api_call(Path) ->
         <<>>,
         [
             with_body,
-            {ssl_options, [{verify, verify_peer}, {cacertfile, CACertFile}]}
+            {ssl_options, [
+                {verify, verify_peer},
+                {cacertfile, CACertFile}
+            ]}
         ]
     ),
     jsx:decode(Json).

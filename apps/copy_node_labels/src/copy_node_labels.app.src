@@ -1,5 +1,5 @@
 {application, copy_node_labels, [
-    {description, "An OTP application"},
+    {description, "Mutating Webhook to copy node labels to pods"},
     {vsn, "0.1.0"},
     {registered, []},
     {mod, {copy_node_labels_app, []}},
