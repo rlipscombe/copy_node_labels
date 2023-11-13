@@ -1,0 +1,29 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: copy-node-labels
+  namespace: default
+  annotations:
+    # Certificate name; can be the Secret, but that then needs an annotation itself.
+    cert-manager.io/inject-ca-from: default/copy-node-labels
+webhooks:
+  - name: copy-node-labels.webhooks.differentpla.net
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        # Only applies to pods in the same namespace
+        scope: "Namespaced"
+    clientConfig:
+      # Must be https://, which is a PITA
+      # url: https://roger-nuc0:8000
+      # at which point, might as well leave it to point to a k8s service...
+      service:
+        namespace: default
+        name: copy-node-labels
+    admissionReviewVersions: ["v1beta1"]
+    sideEffects: None
+    # Setting this to 'Fail' is a good way to prove that it's registered properly (assuming you've not implemented it yet, obvs).
+    # On the other hand, you won't be able to create the pod to _fix_ those problems / to implement it, because, well...
+    failurePolicy: Fail
