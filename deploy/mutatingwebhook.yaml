@@ -23,12 +23,13 @@ webhooks:
             - "cert-manager"
             - "longhorn-system"
     clientConfig:
-      # Must be https://, which is a PITA
+      # If we use 'url', it must be https://, which is a PITA, in the sense that we then need to mess about with certificates. Which means that we would need to create a server key/cert, and make sure we trust the CA.
       # url: https://roger-nuc0:8000
       # at which point, might as well leave it to point to a k8s service...
       service:
         namespace: default
         name: copy-node-labels
+        path: /mutate
     admissionReviewVersions: ["v1"]
     sideEffects: None
     # Setting this to 'Fail' is a good way to prove that it's registered properly (assuming you've not implemented it

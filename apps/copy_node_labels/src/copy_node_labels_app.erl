@@ -8,7 +8,7 @@
 start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
         {'_', [
-            {"/", home_h, []}
+            {"/mutate", mutate_h, []}
         ]}
     ]),
     {ok, _} = cowboy:start_tls(
