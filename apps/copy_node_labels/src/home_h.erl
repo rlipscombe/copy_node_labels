@@ -33,6 +33,9 @@ handle_request(
 ) ->
     ?LOG_INFO("Have nodeName: ~s", [NodeName]),
 
+    % TODO: Get our annotation from the pod, so we know what labels/annotations to copy from the node.
+    
+
     Host = os:getenv("KUBERNETES_SERVICE_HOST"),
     Port = os:getenv("KUBERNETES_SERVICE_PORT"),
     Url = io_lib:format("https://~s:~s/api/v1/nodes/~s", [Host, Port, NodeName]),
@@ -43,7 +46,7 @@ handle_request(
         {<<"authorization">>, <<"Bearer ", Token/binary>>}
     ],
     CACertFile = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
-    {ok, 200, _, _NodeJson} = hackney:get(
+    {ok, 200, _, NodeJson} = hackney:get(
         Url,
         Headers,
         <<>>,
@@ -53,22 +56,9 @@ handle_request(
         ]
     ),
 
-    % TODO: How do I know what to copy to the pod? Do I need to parse the labels/annotations on the _pod_, to know whether to populate them from the node?
-    % Or do I put something in _my_ config to control it? That'd be better than abusing labels/annotations.
-    % Maybe: an annotation on the pod to _enable_ copying. Then copy the configured stuff.
-    % Could support multiple configurations by annotation label.
-    % That could either point to a configuration file section, or to a completely different instance of _this_ "thing".
-
     % You can't patch labels during pod/status updates, which means we can only add annotations.
-
-    % You can't add to non-existent objects, so if there's no annotation object, we need to create it.
-    % If there _is_ one, we need to be careful not to wipe it.
+    % Because the things that need copying are listed in the annotations, we can assume that the annotations object is present.
     Patch = [
-        #{
-            <<"op">> => <<"add">>,
-            <<"path">> => <<"/metadata/annotations">>,
-            <<"value">> => #{}
-        },
         #{
             <<"op">> => <<"add">>,
             <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1zone">>,

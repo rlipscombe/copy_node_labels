@@ -10,6 +10,8 @@ spec:
     metadata:
       labels:
         app: copy-node-labels
+      annotations:
+        differentpla.net/copy-node-labels: "topology.kubernetes.io/region, topology.kubernetes.io/zone"
     spec:
       serviceAccountName: copy-node-labels
       containers:
