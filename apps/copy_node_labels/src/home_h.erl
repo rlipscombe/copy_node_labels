@@ -43,7 +43,7 @@ handle_request(
         {<<"authorization">>, <<"Bearer ", Token/binary>>}
     ],
     CACertFile = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
-    {ok, 200, _, NodeJson} = hackney:get(
+    {ok, 200, _, _NodeJson} = hackney:get(
         Url,
         Headers,
         <<>>,
@@ -58,15 +58,13 @@ handle_request(
     % Maybe: an annotation on the pod to _enable_ copying. Then copy the configured stuff.
     % Could support multiple configurations by annotation label.
     % That could either point to a configuration file section, or to a completely different instance of _this_ "thing".
+
+    % You can't add to non-existent objects, so if there's no annotation object, we need to create it.
+    % If there _is_ one, we need to be careful not to wipe it.
     Patch = [
         #{
             <<"op">> => <<"add">>,
-            <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1/region">>,
-            <<"value">> => <<"eu-west-1">>
-        },
-        #{
-            <<"op">> => <<"add">>,
-            <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1/zone">>,
+            <<"path">> => <<"/metadata/labels/topology.kubernetes.io~1zone">>,
             <<"value">> => <<"eu-west-1a">>
         }
     ],

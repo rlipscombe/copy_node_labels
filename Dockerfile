@@ -36,7 +36,7 @@ RUN chown -R copy_node_labels.copy_node_labels /copy_node_labels/releases/${RELE
 USER copy_node_labels
 ENV HOME /copy_node_labels
 
-EXPOSE 443
+EXPOSE 8443
 
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/copy_node_labels/bin/copy_node_labels", "foreground"]
