@@ -13,35 +13,26 @@ init(Req1, Opts) ->
     % Bail early if it's not an AdmissionReview
     #{<<"apiVersion">> := <<"admission.k8s.io/v1">>, <<"kind">> := <<"AdmissionReview">>} = Request,
 
-    #{
-        <<"request">> := #{
-            <<"operation">> := Operation, <<"name">> := Name, <<"namespace">> := Namespace
-        }
-    } = Request,
-    ?LOG_INFO("~s ~s (in ~s)", [Operation, Name, Namespace]),
-
     handle_request(Request, Req2, Opts).
 
 handle_request(
     _Request = #{
         <<"request">> := #{
+            <<"operation">> := Operation,
+            <<"name">> := Name,
+            <<"namespace">> := Namespace,
             <<"uid">> := Uid,
             <<"object">> := #{
                 <<"spec">> := #{<<"nodeName">> := NodeName},
-                <<"metadata">> := #{<<"annotations">> := Annotations}
+                <<"metadata">> := #{<<"annotations">> := #{<<"differentpla.net/copy-node-labels">> := <<"topology">>}}
             }
         }
     },
     Req,
     Opts
 ) ->
+    ?LOG_INFO("~s ~s (in ~s)", [Operation, Name, Namespace]),
     ?LOG_INFO("Have nodeName: ~s", [NodeName]),
-    ?LOG_INFO("Have annotations: ~p", [Annotations]),
-
-    % Get our annotation from the pod, so we know what labels/annotations to copy from the node.
-
-    % TODO: Or just get _an_ annotation, so we know to apply these particular labels.
-    % e.g. differentpla.net/copy-node-labels: topology
 
     Node = get_node(NodeName),
     #{<<"metadata">> := #{<<"labels">> := Labels}} = Node,
@@ -50,7 +41,7 @@ handle_request(
         <<"topology.kubernetes.io/zone">> := Zone
     } = Labels,
 
-    % You can't patch labels during pod/status updates, which means we can only add annotations.
+    % You can't patch labels during pod/status updates -- you get an error in the kube server log, which means we can only add annotations.
     % Because the things that need copying are listed in the annotations, we can assume that the annotations object is present.
     Patch = [
         #{
@@ -62,6 +53,45 @@ handle_request(
             <<"op">> => <<"add">>,
             <<"path">> => <<"/metadata/annotations/topology.kubernetes.io~1zone">>,
             <<"value">> => Zone
+        }
+    ],
+    ResBody = jsx:encode(#{
+        <<"apiVersion">> => <<"admission.k8s.io/v1">>,
+        <<"kind">> => <<"AdmissionReview">>,
+        <<"response">> => #{
+            <<"uid">> => Uid,
+            <<"allowed">> => true,
+            <<"patchType">> => <<"JSONPatch">>,
+            <<"patch">> => base64:encode(jsx:encode(Patch))
+        }
+    }),
+
+    Req2 = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, ResBody, Req),
+    {ok, Req2, Opts};
+handle_request(
+    _Request = #{
+        <<"request">> := #{
+            <<"operation">> := Operation,
+            <<"name">> := Name,
+            <<"namespace">> := Namespace,
+            <<"uid">> := Uid,
+            <<"object">> := #{
+                <<"metadata">> := #{<<"annotations">> := #{<<"differentpla.net/copy-node-labels">> := <<"topology">>}}
+            }
+        }
+    },
+    Req,
+    Opts
+) ->
+    ?LOG_INFO("~s ~s (in ~s) no node", [Operation, Name, Namespace]),
+
+    % You can't patch labels during "pod/status" updates -- you get an error in the kube server log, which means we can only add annotations.
+    % Because the things that need copying are listed in the annotations, we can assume that the annotations object is present.
+    Patch = [
+        #{
+            <<"op">> => <<"add">>,
+            <<"path">> => <<"/metadata/annotations/differentpla.net~1annotation">>,
+            <<"value">> => <<"hello">>
         }
     ],
     ResBody = jsx:encode(#{

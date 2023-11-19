@@ -8,15 +8,52 @@ spec:
       app: dump-env-vars
   template:
     metadata:
+      annotations:
+        # We end up deleting this, but it's still used. Which implies the downward API is evaluated earlier than that.
+        differentpla.net/foo: bar
+        differentpla.net/copy-node-labels: topology
+        # If I add the annotation myself, we're golden, and it uses this value.
+        topology.kubernetes.io/zone: us-central-1b
       labels:
         app: dump-env-vars
     spec:
       containers:
-      - name: dump-env-vars
-        image: docker.k3s.differentpla.net/dump-env-vars
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        ports:
-        - containerPort: 3000
+        - name: dump-env-vars
+          image: docker.k3s.differentpla.net/dump-env-vars
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 3000
+          env:
+            - name: FOO
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['differentpla.net/foo']
+            # But this is blank, implying that we're too late when mutating the annotations.
+            - name: TOPOLOGY_REGION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['topology.kubernetes.io/region']
+            - name: TOPOLOGY_ZONE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['topology.kubernetes.io/zone']
+            # This doesn't trick it into doing the right thing, either.
+            - name: REGION
+              value: $(TOPOLOGY_REGION)
+            - name: ZONE
+              value: $(TOPOLOGY_ZONE)
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+# Doesn't work, which implies it's too late. However: status.podIP is a thing, and that's assigned _really_ late, so why
+# not?
+
+# The annotation changes happen, but they're not reflected in the downwardAPI.
+
+# And we can't easily use the K8s api in the pod, because that requires code/script changes, and rbac changes.
+# What about access to _current_ pod vs. access to the node in general?
