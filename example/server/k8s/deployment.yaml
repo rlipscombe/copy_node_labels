@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dump-env-vars
+spec:
+  selector:
+    matchLabels:
+      app: dump-env-vars
+  template:
+    metadata:
+      labels:
+        app: dump-env-vars
+    spec:
+      containers:
+      - name: dump-env-vars
+        image: docker.k3s.differentpla.net/dump-env-vars
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000

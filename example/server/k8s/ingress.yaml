@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: dump-env-vars
+  annotations:
+    # Traefik: secure, plz.
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    # Ask cert-manager to issue a TLS certificate.
+    cert-manager.io/cluster-issuer: k3s-ca-cluster-issuer
+
+spec:
+  tls:
+  - hosts:
+      - dump-env-vars.k3s.differentpla.net
+    secretName: dump-env-vars-tls
+  rules:
+  - host: dump-env-vars.k3s.differentpla.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dump-env-vars
+            port:
+              name: http
