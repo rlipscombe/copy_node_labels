@@ -9,14 +9,15 @@ spec:
   template:
     metadata:
       annotations:
-        # We end up deleting this, but it's still used. Which implies the downward API is evaluated earlier than that.
-        differentpla.net/foo: bar
+        differentpla.net/in-deployment: bar
         differentpla.net/copy-node-labels: topology
-        # If I add the annotation myself, we're golden, and it uses this value.
-        topology.kubernetes.io/zone: us-central-1b
       labels:
         app: dump-env-vars
     spec:
+      initContainers:
+        - name: init
+          image: busybox
+          command: ['sh', '-c', 'sleep 60']
       containers:
         - name: dump-env-vars
           image: docker.k3s.differentpla.net/dump-env-vars
@@ -27,10 +28,11 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: FOO
+            # This is populated correctly.
+            - name: IN_DEPLOYMENT
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.annotations['differentpla.net/foo']
+                  fieldPath: metadata.annotations['differentpla.net/in-deployment']
             # But this is blank, implying that we're too late when mutating the annotations.
             - name: TOPOLOGY_REGION
               valueFrom:
@@ -40,11 +42,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.annotations['topology.kubernetes.io/zone']
-            # This doesn't trick it into doing the right thing, either.
-            - name: REGION
-              value: $(TOPOLOGY_REGION)
-            - name: ZONE
-              value: $(TOPOLOGY_ZONE)
+            # This is set kinda late, so why doesn't the above work?
             - name: MY_POD_IP
               valueFrom:
                 fieldRef:

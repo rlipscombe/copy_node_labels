@@ -16,9 +16,6 @@ build-image:
 
 push-image: assert-git-vsn
 	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME)
-	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME):latest
-	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
-	podman push $(IMAGE_NAME) $(DOCKER_REGISTRY)/$(IMAGE_NAME):$(BRANCH_NAME)
 
 assert-git-vsn:
 	@ ./scripts/git-vsn >/dev/null
