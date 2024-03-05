@@ -3,6 +3,8 @@
 A K8s mutating web hook that copies node topology labels to pods scheduled on that node, so they can be accessed in the
 downward API.
 
+**Note that this suffers from a race condition and doesn't actually work reliably.**
+
 ## Motivation
 
 Some services are "rack-aware", such as Kafka. It's a common convention to use the cloud availability zone (AZ) as a
@@ -14,9 +16,3 @@ It would be better to inject the region and zone values into environment variabl
 
 This project implements a mutating web hook which copies the topology labels from the scheduled node and adds them as
 pod annotations. From there, they can be retrieved using the Kubernetes "downward API".
-
-```sh
-kubectl get pods -l app=nginx -o name | xargs kubectl delete #del-nginx
-kubectl get pods -l app=copy-node-labels -o name | xargs kubectl delete #del-copy
-kubectl get pods -l app=copy-node-labels -o name | xargs kubectl logs #logs-copy
-```
